@@ -1,5 +1,5 @@
-# Anomaly-Detection-Ensemble-Using-Unsupervised-Feature-Selection
-> The code for the paper "Unsupervised Outlier Detection: A Meta-Algorithm
+# Unsupervised Outlier Detection: A Meta-Algorithm based on Feature Selection
+> The code for the paper "Unsupervised Outlier Detection: A Meta-Algorithm based on Feature Selection
 > based on Feature Selection"
 
 ## Replicate results of the paper
