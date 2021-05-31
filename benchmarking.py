@@ -70,7 +70,8 @@ for num_mat, mat_file in enumerate(mat_file_list):
     classifiers = define_classifiers(random_state, outliers_fraction)
 
     # create df for results
-    results = pd.DataFrame(columns=classifiers.keys())
+    train_results = pd.DataFrame(columns=classifiers.keys())
+    test_results = pd.DataFrame(columns=classifiers.keys())
 
     print ('\n', 'Outliers Detection', '\n')
     for clf_name, clf in classifiers.items():
@@ -82,11 +83,14 @@ for num_mat, mat_file in enumerate(mat_file_list):
         # train
         t0 = time()
         clf.fit(X_train_norm)
+        train_scores = clf.decision_function(X_train_norm)
         test_scores = clf.decision_function(X_test_norm)
         # Then the output scores are standardized into zero average and unit std before combination. 
         # This step is crucial to adjust the detector outputs to the same scale.
-        standarized_scores = standardizer(test_scores.reshape(-1, 1))
-        results[clf_name] = standarized_scores.reshape(1,-1)[0]
+        standarized_train_scores = standardizer(train_scores.reshape(-1, 1))
+        standarized_test_scores = standardizer(test_scores.reshape(-1, 1))
+        train_results[clf_name] = standarized_train_scores.reshape(1,-1)[0]
+        test_results[clf_name] = standarized_test_scores.reshape(1,-1)[0]
         t1 = time()
 
         #calculate metrics of interest
@@ -111,10 +115,18 @@ for num_mat, mat_file in enumerate(mat_file_list):
     
     print ('\n', 'Unsupervised Feature Selection & Stacking', '\n')
     for normalizer_name, normalizer in normalizers.items():
-        t0 = time()        
-        norm_results = normalizer.fit_transform(results.values)
+        t0 = time()
+        # feature selection on training data
+        norm_train_results = normalizer.fit_transform(train_results.values)
+        # keep scores and isolate the bets estimators
+        norm_train_scores = normalizer._get_scores()
+        top_k = sorted(np.argsort(norm_train_scores)[-k:])
+        # top_estimator_names = train_results.iloc[:, top_k].columns
         t1 = time()
         duration = duration_until_now + round(t1 - t0, ndigits=4)
+
+        # from the testing results keep the selected estimator results
+        norm_results = test_results.iloc[:, top_k]
 
         # define combination methods
         combination_methods = define_combination_methods(normalizer_name, k, norm_results)
