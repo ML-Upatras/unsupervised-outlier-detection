@@ -66,3 +66,15 @@ def define_combination_methods(normalizer_name, k, norm_results):
     }
 
     return combination_methods
+
+
+def define_naive_combination_methods(norm_results):
+
+    combination_methods = {
+        'Average': average(norm_results),
+        'Maximization': maximization(norm_results),
+        'Aom': aom(norm_results),
+        'Moa': moa(norm_results)
+    }
+
+    return combination_methods
